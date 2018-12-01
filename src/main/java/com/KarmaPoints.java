@@ -6,6 +6,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.naming.NoPermissionException;
 import java.io.File;
 import java.io.IOException;
 
@@ -35,9 +36,18 @@ public class KarmaPoints extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-            return commandManager.execute(sender, command, label, args);
+            if (commandManager.execute(sender, command, label, args)) {
+                tempData.save(dataFile);
+                points.save(pointsFile);
+                return true;
+            }
+            return false;
         } catch (NoSuchPlayerException e) {
             sender.sendMessage("This player doesn't exist!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoPermissionException e) {
+            sender.sendMessage("No permission");
         }
         return true;
     }

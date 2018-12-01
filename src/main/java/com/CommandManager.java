@@ -4,6 +4,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import javax.naming.NoPermissionException;
+
 public class CommandManager {
 
     private final KarmaPoints plugin;
@@ -17,7 +19,7 @@ public class CommandManager {
         this.pointService = new PointServiceImpl(plugin);
     }
 
-    public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException {
+    public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException, NoPermissionException {
         this.sender = sender;
         if (args.length != 0)
             switch (args[0]) {
@@ -55,7 +57,7 @@ public class CommandManager {
         return player.getName();
     }
 
-    private boolean executeCommand(String command) {
+    private boolean executeCommand(String command) throws NoPermissionException {
         switch (command) {
             case "time":
                 message(pointService.minutesUntilGainPoint(sender.getName()) + " minutes.");
@@ -63,14 +65,15 @@ public class CommandManager {
             case "top":
                 pointService.topByPoints().forEach(this::message);
                 return true;
-            case "adhelp": // Админская команда
+            case "adhelp":
+                checkOp();
                 // TODO: 01.12.2018 Сделать
                 return true;
         }
         return false;
     }
 
-    private boolean executeCommand(String command, String player) {
+    private boolean executeCommand(String command, String player) throws NoPermissionException {
         switch (command) {
             case "good":
                 message("executed 'good' command");
@@ -78,30 +81,41 @@ public class CommandManager {
             case "bad":
                 message("executed 'bad' command");
                 return pointService.addPoints(sender.getName(), player, -1);
-            case "display": // Админская команда
+            case "display":
+                checkOp();
                 message(pointService.getPoints(player) + " points");
                 return true;
         }
         return false;
     }
 
-    private boolean executeCommand(String command, String player, int qty) {
+    private boolean executeCommand(String command, String player, int qty) throws NoPermissionException {
         switch (command) {
-            case "rob": // Админская команда
-                return true;
+            case "rob":
+                checkOp();
+                pointService.addPoints(player, -qty);
             case "gift":
                 return pointService.transferPoints(sender.getName(), player, qty);
-            case "tempadd": // Админская команда
+            case "tempadd":
+                checkOp();
                 return true; // TODO: 01.12.2018  ???
-            case "tempprob": // Админская команда
+            case "tempprob":
+                checkOp();
                 return true; // TODO: 01.12.2018  ???
-            case "set": // Админская команда
+            case "set":
+                checkOp();
                 pointService.setPoints(player, qty);
                 return true;
-            case "add": // Админская команда
+            case "add":
+                checkOp();
                 pointService.addPoints(player, qty);
                 return true;
         }
         return true;
+    }
+
+    private void checkOp() throws NoPermissionException {
+        if(!sender.hasPermission("karmaPoints.op"))
+            throw new NoPermissionException();
     }
 }
