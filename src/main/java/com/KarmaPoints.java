@@ -9,15 +9,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.naming.NoPermissionException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
 
 public class KarmaPoints extends JavaPlugin {
 
     private YamlConfiguration config;
     private YamlConfiguration tempData;
     private YamlConfiguration points;
-    File configFile = new File(getDataFolder(), "config.yml");
-    File dataFile = new File(getDataFolder(), "tempData.yml");
-    File pointsFile = new File(getDataFolder(), "points.yml");
+    private File configFile = new File(getDataFolder(), "config.yml");
+    private File dataFile = new File(getDataFolder(), "tempData.yml");
+    private File pointsFile = new File(getDataFolder(), "points.yml");
 
     private CommandManager commandManager;
 
@@ -33,24 +37,22 @@ public class KarmaPoints extends JavaPlugin {
         commandManager = new CommandManager(this);
     }
 
-    @SuppressWarnings("SpellCheckingInspection")
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
-            if (commandManager.execute(sender, command, label, args)) {
+            if (commandManager.execute(sender, args)) {
                 tempData.save(dataFile);
                 points.save(pointsFile);
-                return true;
             }
-            return false;
-        } catch (NoSuchPlayerException e) {
-            sender.sendMessage("This player doesn't exist!");
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NoSuchPlayerException e) {
+            sender.sendMessage(config.getString("no-permission-message"));
         } catch (NoPermissionException e) {
-            sender.sendMessage("No permission");
+            sender.sendMessage(config.getString("no-player-message"));
         } catch (DelayException e) {
-            sender.sendMessage("Wait for " + e.getHOW_LONG() + " minutes!");
+            sender.sendMessage(String.format(config.getString("delay-message"), e.getHOW_LONG()));
         }
         return true;
     }
@@ -59,18 +61,17 @@ public class KarmaPoints extends JavaPlugin {
     private void loadConfig() throws IOException, InvalidConfigurationException {
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
-            configFile.createNewFile();
-            config = new YamlConfiguration();
-            config.save(configFile);
+            Files.copy(getResource("default_config.yml"), configFile.toPath());
         }
+
         if (!dataFile.exists()) {
-            dataFile.getParentFile().mkdirs();
             dataFile.createNewFile();
         }
+
         if (!pointsFile.exists()) {
-            pointsFile.getParentFile().mkdirs();
             pointsFile.createNewFile();
         }
+
         tempData = new YamlConfiguration();
         tempData.load(dataFile);
         config = new YamlConfiguration();
@@ -79,24 +80,15 @@ public class KarmaPoints extends JavaPlugin {
         points.load(pointsFile);
     }
 
-    public YamlConfiguration getConfiguration() {
+    YamlConfiguration getConfiguration() {
         return config;
     }
 
-    public YamlConfiguration getTempData() {
-        return tempData;
-    }
-
-    public void writeData(String key, Object value) {
-        tempData.set(key, value);
-        try {
-            tempData.save(dataFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public YamlConfiguration getPoints() {
+    YamlConfiguration getPoints() {
         return points;
+    }
+
+    YamlConfiguration getTempData() {
+        return tempData;
     }
 }

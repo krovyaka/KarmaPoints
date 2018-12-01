@@ -12,7 +12,7 @@ public interface PointService {
     /**
      * Возвращает отсортированный список игроков по количеству поинтов. От большего к меньшему
      */
-    List<String> topByPoints();
+    List<TopElement> topByPoints();
 
     /**
      * Получить количество поинтов у выбранного игрока.
@@ -22,14 +22,14 @@ public interface PointService {
     /**
      * Передать поинты игроку. Если первый игрок может совешить транзацию, то у него отнимутся поинты и передатутся
      * другому игроку
-     *
+     * <p>
      * Имеет кулдаун
      */
     boolean transferPoints(String fromPlayer, String toPlayer, int num) throws DelayException;
 
     /**
      * Дать поинты игроку. У первого игрока они не отнимаются.
-     *
+     * <p>
      * Имеет кулдаун
      */
     boolean addPoints(String fromNickname, String toNickname, int count) throws DelayException;
@@ -43,4 +43,14 @@ public interface PointService {
      * Установить точное количество поинтов выбранному игроку
      */
     void setPoints(String player, int qty);
+
+    class TopElement {
+        final String nickname;
+        final int points;
+
+        public TopElement(String nickname, int points) {
+            this.nickname = nickname;
+            this.points = points;
+        }
+    }
 }

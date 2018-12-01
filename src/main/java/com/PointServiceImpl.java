@@ -12,14 +12,15 @@ import java.util.stream.Collectors;
 public class PointServiceImpl implements PointService {
 
     private final String NEXT_USE_PREFIX = "next.";
-    private final long DELAY_IN_MINUTES = 2L;
+    private final long DELAY_IN_MINUTES;
 
     private final YamlConfiguration tempData;
     private final YamlConfiguration points;
 
-    public PointServiceImpl(KarmaPoints plugin) {
+    PointServiceImpl(KarmaPoints plugin) {
         tempData = plugin.getTempData();
         points = plugin.getPoints();
+        DELAY_IN_MINUTES = plugin.getConfiguration().getLong("delay-in-minutes");
     }
 
     public long minutesUntilGainPoint(String nickname) {
@@ -30,13 +31,13 @@ public class PointServiceImpl implements PointService {
         return next.isAfter(LocalDateTime.now()) ? Duration.between(LocalDateTime.now(), next).toMinutes() : -1L;
     }
 
-    public List<String> topByPoints() {
+    public List<TopElement> topByPoints() {
         return points.getValues(false)
                 .entrySet().stream()
                 .map(this::intValueMapper)
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(10)
-                .map(x -> x.getKey() + ": " + x.getValue())
+                .map(x -> new TopElement(x.getKey(), x.getValue()))
                 .collect(Collectors.toList());
     }
 

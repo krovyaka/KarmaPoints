@@ -1,25 +1,28 @@
 package com;
 
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import javax.naming.NoPermissionException;
 
-public class CommandManager {
+class CommandManager {
 
     private final KarmaPoints plugin;
+
+    private final YamlConfiguration config;
 
     private PointService pointService;
 
     private CommandSender sender;
 
-    public CommandManager(KarmaPoints plugin) {
+    CommandManager(KarmaPoints plugin) {
         this.plugin = plugin;
         this.pointService = new PointServiceImpl(plugin);
+        this.config = plugin.getConfiguration();
     }
 
-    public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException, NoPermissionException, DelayException {
+    boolean execute(CommandSender sender, String[] args) throws NoSuchPlayerException, NoPermissionException, DelayException {
         this.sender = sender;
         if (args.length != 0)
             switch (args[0]) {
@@ -61,14 +64,15 @@ public class CommandManager {
         switch (command) {
             case "time":
                 long result = pointService.minutesUntilGainPoint(sender.getName());
-                message(result == -1 ? "No delay" : "Delay is " + result + " minutes");
+                message(result == -1 ? config.getString("no-time-message") : String.format(config.getString("time-message"), result));
                 return true;
             case "top":
-                pointService.topByPoints().forEach(this::message);
+                message(config.getString("top-message"));
+                pointService.topByPoints().forEach(x -> message(String.format(config.getString("top-element-message"), x.nickname, x.points)));
                 return true;
             case "adhelp":
                 checkOp();
-                // TODO: 01.12.2018 Сделать
+                message(config.getString("admin-help"));
                 return true;
         }
         return false;
@@ -77,14 +81,14 @@ public class CommandManager {
     private boolean executeCommand(String command, String player) throws NoPermissionException, DelayException {
         switch (command) {
             case "good":
-                message("executed 'good' command");
+                message(config.getString("good-message"));
                 return pointService.addPoints(sender.getName(), player, 1);
             case "bad":
-                message("executed 'bad' command");
+                message(config.getString("bad-message"));
                 return pointService.addPoints(sender.getName(), player, -1);
             case "display":
                 checkOp();
-                message(pointService.getPoints(player) + " points");
+                message(String.format(config.getString("display-message"), pointService.getPoints(player)));
                 return true;
         }
         return false;
@@ -94,22 +98,32 @@ public class CommandManager {
         switch (command) {
             case "rob":
                 checkOp();
+                message(config.getString("rob-message"));
                 pointService.addPoints(player, -qty);
                 return true;
             case "gift":
-                return pointService.transferPoints(sender.getName(), player, qty);
+                boolean success = pointService.transferPoints(sender.getName(), player, qty);
+                if (success)
+                    message(config.getString("gift-message"));
+                else
+                    message(config.getString("wrong-gift-message"));
+                return true;
             case "tempadd":
                 checkOp();
+                message(config.getString("no-realization-message"));
                 return true; // TODO: 01.12.2018  ???
             case "tempprob":
                 checkOp();
+                message(config.getString("no-realization-message"));
                 return true; // TODO: 01.12.2018  ???
             case "set":
                 checkOp();
+                message(config.getString("set-message"));
                 pointService.setPoints(player, qty);
                 return true;
             case "add":
                 checkOp();
+                message(config.getString("add-message"));
                 pointService.addPoints(player, qty);
                 return true;
         }
@@ -117,7 +131,7 @@ public class CommandManager {
     }
 
     private void checkOp() throws NoPermissionException {
-        if(!sender.hasPermission("karmaPoints.op"))
+        if (!sender.hasPermission("karmaPoints.op"))
             throw new NoPermissionException();
     }
 }

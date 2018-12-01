@@ -1,7 +1,7 @@
 name: KarmaPoints
 main: com.KarmaPoints
 author: krovyaka
-version: 0.2
+version: 1.0
 description: Current plugin makes you get a karma points for a while you just in the game. So, whatever, you can gift karma points to the other players.
 
 commands:
