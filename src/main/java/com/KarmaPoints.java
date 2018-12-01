@@ -19,7 +19,7 @@ public class KarmaPoints extends JavaPlugin {
     File dataFile = new File(getDataFolder(), "tempData.yml");
     File pointsFile = new File(getDataFolder(), "points.yml");
 
-    private CommandManager commandManager = new CommandManager(this);
+    private CommandManager commandManager;
 
     @Override
     public void onEnable() {
@@ -30,6 +30,7 @@ public class KarmaPoints extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getLogger().info("KarmaPoints is running!");
+        commandManager = new CommandManager(this);
     }
 
     @SuppressWarnings("SpellCheckingInspection")
@@ -48,6 +49,8 @@ public class KarmaPoints extends JavaPlugin {
             e.printStackTrace();
         } catch (NoPermissionException e) {
             sender.sendMessage("No permission");
+        } catch (DelayException e) {
+            sender.sendMessage("Wait for " + e.getHOW_LONG() + " minutes!");
         }
         return true;
     }

@@ -25,14 +25,14 @@ public interface PointService {
      *
      * Имеет кулдаун
      */
-    boolean transferPoints(String fromPlayer, String toPlayer, int num);
+    boolean transferPoints(String fromPlayer, String toPlayer, int num) throws DelayException;
 
     /**
      * Дать поинты игроку. У первого игрока они не отнимаются.
      *
      * Имеет кулдаун
      */
-    boolean addPoints(String fromNickname, String toNickname, int count);
+    boolean addPoints(String fromNickname, String toNickname, int count) throws DelayException;
 
     /**
      * Добавить поинты игроку без проверок на невозможность операции.

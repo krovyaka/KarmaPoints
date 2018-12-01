@@ -19,7 +19,7 @@ public class CommandManager {
         this.pointService = new PointServiceImpl(plugin);
     }
 
-    public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException, NoPermissionException {
+    public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException, NoPermissionException, DelayException {
         this.sender = sender;
         if (args.length != 0)
             switch (args[0]) {
@@ -60,7 +60,8 @@ public class CommandManager {
     private boolean executeCommand(String command) throws NoPermissionException {
         switch (command) {
             case "time":
-                message(pointService.minutesUntilGainPoint(sender.getName()) + " minutes.");
+                long result = pointService.minutesUntilGainPoint(sender.getName());
+                message(result == -1 ? "No delay" : "Delay is " + result + " minutes");
                 return true;
             case "top":
                 pointService.topByPoints().forEach(this::message);
@@ -73,7 +74,7 @@ public class CommandManager {
         return false;
     }
 
-    private boolean executeCommand(String command, String player) throws NoPermissionException {
+    private boolean executeCommand(String command, String player) throws NoPermissionException, DelayException {
         switch (command) {
             case "good":
                 message("executed 'good' command");
@@ -89,11 +90,12 @@ public class CommandManager {
         return false;
     }
 
-    private boolean executeCommand(String command, String player, int qty) throws NoPermissionException {
+    private boolean executeCommand(String command, String player, int qty) throws NoPermissionException, DelayException {
         switch (command) {
             case "rob":
                 checkOp();
                 pointService.addPoints(player, -qty);
+                return true;
             case "gift":
                 return pointService.transferPoints(sender.getName(), player, qty);
             case "tempadd":
