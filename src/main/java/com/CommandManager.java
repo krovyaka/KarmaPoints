@@ -14,6 +14,7 @@ public class CommandManager {
 
     public CommandManager(KarmaPoints plugin) {
         this.plugin = plugin;
+        this.pointService = new PointServiceImpl(plugin);
     }
 
     public boolean execute(CommandSender sender, Command command, String label, String[] args) throws NoSuchPlayerException {
@@ -60,7 +61,7 @@ public class CommandManager {
                 message(pointService.minutesUntilGainPoint(sender.getName()) + " minutes.");
                 return true;
             case "top":
-                pointService.topByPoint().forEach(this::message);
+                pointService.topByPoints().forEach(this::message);
                 return true;
             case "adhelp": // Админская команда
                 // TODO: 01.12.2018 Сделать
@@ -95,9 +96,11 @@ public class CommandManager {
             case "tempprob": // Админская команда
                 return true; // TODO: 01.12.2018  ???
             case "set": // Админская команда
-                return pointService.setPoints(player, qty);
+                pointService.setPoints(player, qty);
+                return true;
             case "add": // Админская команда
-                return pointService.addPoints(player, qty);
+                pointService.addPoints(player, qty);
+                return true;
         }
         return true;
     }

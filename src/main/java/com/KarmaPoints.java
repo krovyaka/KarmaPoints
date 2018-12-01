@@ -12,9 +12,11 @@ import java.io.IOException;
 public class KarmaPoints extends JavaPlugin {
 
     private YamlConfiguration config;
-    private YamlConfiguration data;
+    private YamlConfiguration tempData;
+    private YamlConfiguration points;
     File configFile = new File(getDataFolder(), "config.yml");
-    File dataFile = new File(getDataFolder(), "data.yml");
+    File dataFile = new File(getDataFolder(), "tempData.yml");
+    File pointsFile = new File(getDataFolder(), "points.yml");
 
     private CommandManager commandManager = new CommandManager(this);
 
@@ -42,39 +44,46 @@ public class KarmaPoints extends JavaPlugin {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void loadConfig() throws IOException, InvalidConfigurationException {
-
         if (!configFile.exists()) {
             configFile.getParentFile().mkdirs();
             configFile.createNewFile();
             config = new YamlConfiguration();
             config.save(configFile);
         }
-        if(!dataFile.exists()) {
+        if (!dataFile.exists()) {
             dataFile.getParentFile().mkdirs();
             dataFile.createNewFile();
         }
-        data = new YamlConfiguration();
-        data.load(dataFile);
+        if (!pointsFile.exists()) {
+            pointsFile.getParentFile().mkdirs();
+            pointsFile.createNewFile();
+        }
+        tempData = new YamlConfiguration();
+        tempData.load(dataFile);
         config = new YamlConfiguration();
         config.load(configFile);
+        points = new YamlConfiguration();
+        points.load(pointsFile);
     }
 
     public YamlConfiguration getConfiguration() {
         return config;
     }
 
-    public YamlConfiguration getData() {
-        return data;
+    public YamlConfiguration getTempData() {
+        return tempData;
     }
 
     public void writeData(String key, Object value) {
-        data.set(key, value);
+        tempData.set(key, value);
         try {
-            data.save(dataFile);
+            tempData.save(dataFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-
+    public YamlConfiguration getPoints() {
+        return points;
+    }
 }

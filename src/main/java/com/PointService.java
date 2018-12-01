@@ -7,12 +7,12 @@ public interface PointService {
     /**
      * Время до того как появится возможность передать поинты другому игроку в минутах.
      */
-    int minutesUntilGainPoint(String nickname);
+    long minutesUntilGainPoint(String nickname);
 
     /**
      * Возвращает отсортированный список игроков по количеству поинтов. От большего к меньшему
      */
-    List<String> topByPoint();
+    List<String> topByPoints();
 
     /**
      * Получить количество поинтов у выбранного игрока.
@@ -22,21 +22,25 @@ public interface PointService {
     /**
      * Передать поинты игроку. Если первый игрок может совешить транзацию, то у него отнимутся поинты и передатутся
      * другому игроку
+     *
+     * Имеет кулдаун
      */
-    boolean transferPoints(String name, String player, int num);
+    boolean transferPoints(String fromPlayer, String toPlayer, int num);
 
     /**
-     * Дать поинты игроку. У первого игрока они не отнимаются, но проверяется, может ли он совершить транзакцию.
+     * Дать поинты игроку. У первого игрока они не отнимаются.
+     *
+     * Имеет кулдаун
      */
     boolean addPoints(String fromNickname, String toNickname, int count);
 
     /**
      * Добавить поинты игроку без проверок на невозможность операции.
      */
-    boolean addPoints(String player, int qty);
+    void addPoints(String player, int qty);
 
     /**
      * Установить точное количество поинтов выбранному игроку
      */
-    boolean setPoints(String player, int qty);
+    void setPoints(String player, int qty);
 }
