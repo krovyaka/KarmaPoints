@@ -9,9 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.naming.NoPermissionException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 
 public class KarmaPoints extends JavaPlugin {
@@ -47,12 +44,14 @@ public class KarmaPoints extends JavaPlugin {
             return true;
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (NoSuchPlayerException e) {
-            sender.sendMessage(config.getString("no-permission-message"));
         } catch (NoPermissionException e) {
+            sender.sendMessage(config.getString("no-permission-message"));
+        } catch (NoSuchPlayerException e) {
             sender.sendMessage(config.getString("no-player-message"));
         } catch (DelayException e) {
             sender.sendMessage(String.format(config.getString("delay-message"), e.getHOW_LONG()));
+        } catch (SelfUseException e) {
+            sender.sendMessage(config.getString("self-use-message"));
         }
         return true;
     }

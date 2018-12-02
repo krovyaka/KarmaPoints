@@ -1,12 +1,18 @@
 package com;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.io.IOUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import javax.naming.NoPermissionException;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 class CommandManager {
+
+    private final String BUG_CHAR = String.valueOf((char) 13);
 
     private final KarmaPoints plugin;
 
@@ -22,12 +28,13 @@ class CommandManager {
         this.config = plugin.getConfiguration();
     }
 
-    boolean execute(CommandSender sender, String[] args) throws NoSuchPlayerException, NoPermissionException, DelayException {
+    boolean execute(CommandSender sender, String[] args) throws NoSuchPlayerException, NoPermissionException, DelayException, IOException, SelfUseException {
         this.sender = sender;
         if (args.length != 0)
             switch (args[0]) {
                 case "time":
                 case "top":
+                case "help":
                 case "adhelp":
                     return executeCommand(args[0]);
                 case "good":
@@ -60,8 +67,11 @@ class CommandManager {
         return player.getName();
     }
 
-    private boolean executeCommand(String command) throws NoPermissionException {
+    private boolean executeCommand(String command) throws NoPermissionException, IOException {
         switch (command) {
+            case "help":
+                message(IOUtils.toString(plugin.getResource("help.txt"), Charset.forName("UTF-8")).replaceAll(BUG_CHAR, ""));
+                return true;
             case "time":
                 long result = pointService.minutesUntilGainPoint(sender.getName());
                 message(result == -1 ? config.getString("no-time-message") : String.format(config.getString("time-message"), result));
@@ -72,18 +82,20 @@ class CommandManager {
                 return true;
             case "adhelp":
                 checkOp();
-                message(config.getString("admin-help"));
+                message(IOUtils.toString(plugin.getResource("admin_help.txt"), Charset.forName("UTF-8")).replaceAll(BUG_CHAR, ""));
                 return true;
         }
         return false;
     }
 
-    private boolean executeCommand(String command, String player) throws NoPermissionException, DelayException {
+    private boolean executeCommand(String command, String player) throws NoPermissionException, DelayException, SelfUseException {
         switch (command) {
             case "good":
+                checkSelf(player);
                 message(config.getString("good-message"));
                 return pointService.addPoints(sender.getName(), player, 1);
             case "bad":
+                checkSelf(player);
                 message(config.getString("bad-message"));
                 return pointService.addPoints(sender.getName(), player, -1);
             case "display":
@@ -94,7 +106,7 @@ class CommandManager {
         return false;
     }
 
-    private boolean executeCommand(String command, String player, int qty) throws NoPermissionException, DelayException {
+    private boolean executeCommand(String command, String player, int qty) throws NoPermissionException, DelayException, SelfUseException {
         switch (command) {
             case "rob":
                 checkOp();
@@ -102,6 +114,7 @@ class CommandManager {
                 pointService.addPoints(player, -qty);
                 return true;
             case "gift":
+                checkSelf(player);
                 boolean success = pointService.transferPoints(sender.getName(), player, qty);
                 if (success)
                     message(config.getString("gift-message"));
@@ -133,5 +146,10 @@ class CommandManager {
     private void checkOp() throws NoPermissionException {
         if (!sender.hasPermission("karmaPoints.op"))
             throw new NoPermissionException();
+    }
+
+    private void checkSelf(String player) throws SelfUseException {
+        if(sender.getName().equals(player))
+            throw new SelfUseException();
     }
 }
